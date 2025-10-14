@@ -1,0 +1,93 @@
+// Import dependencies
+const mongoose = require("mongoose");
+
+// Connect to MongoDB
+mongoose.connect("mongodb://localhost:27017/ecommerceDB", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("✅ MongoDB connected successfully"))
+.catch(err => console.error("❌ MongoDB connection error:", err));
+
+/* ===============================
+   SCHEMA AND MODEL
+================================= */
+const variantSchema = new mongoose.Schema({
+  color: String,
+  size: String,
+  stock: Number
+});
+
+const productSchema = new mongoose.Schema({
+  name: String,
+  price: Number,
+  category: String,
+  variants: [variantSchema]
+});
+
+const Product = mongoose.model("Product", productSchema);
+
+/* ===============================
+   SAMPLE DATA INSERTION
+================================= */
+async function insertSampleProducts() {
+  await Product.deleteMany(); // clear existing data
+
+  const products = [
+    {
+      name: "T-Shirt",
+      price: 599,
+      category: "Clothing",
+      variants: [
+        { color: "Red", size: "M", stock: 30 },
+        { color: "Blue", size: "L", stock: 20 }
+      ]
+    },
+    {
+      name: "Sneakers",
+      price: 2499,
+      category: "Footwear",
+      variants: [
+        { color: "White", size: "9", stock: 15 },
+        { color: "Black", size: "10", stock: 10 }
+      ]
+    },
+    {
+      name: "Backpack",
+      price: 1499,
+      category: "Accessories",
+      variants: [
+        { color: "Gray", size: "Medium", stock: 25 },
+        { color: "Blue", size: "Large", stock: 12 }
+      ]
+    }
+  ];
+
+  await Product.insertMany(products);
+  console.log("✅ Sample products inserted successfully");
+}
+
+/* ===============================
+   QUERIES AND OPERATIONS
+================================= */
+async function runQueries() {
+  // 1️⃣ Retrieve all products
+  console.log("\n📦 All Products:");
+  console.log(await Product.find());
+
+  // 2️⃣ Filter products by category
+  console.log("\n👟 Footwear Products:");
+  console.log(await Product.find({ category: "Footwear" }));
+
+  // 3️⃣ Project only variant details (color and stock)
+  console.log("\n🎨 Variant details (color, stock only):");
+  console.log(await Product.find({}, { "variants.color": 1, "variants.stock": 1, _id: 0 }));
+}
+
+/* ===============================
+   MAIN EXECUTION
+================================= */
+insertSampleProducts()
+  .then(runQueries)
+  .then(() => mongoose.disconnect())
+  .catch(err => console.error(err));
