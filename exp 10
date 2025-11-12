@@ -1,0 +1,414 @@
+#Java#
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class BFS {
+    static final int N = 20;
+    static boolean[][] visited = new boolean[N][N];
+
+    // Directions: right, down, left, up
+    static int[] dx = {0, 1, 0, -1};
+    static int[] dy = {1, 0, -1, 0};
+
+    public static void bfs(int startX, int startY) {
+        Queue<int[]> q = new LinkedList<>();
+        q.add(new int[]{startX, startY});
+        visited[startX][startY] = true;
+
+        while (!q.isEmpty()) {
+            int[] point = q.poll();
+            int x = point[0];
+            int y = point[1];
+
+            // For visualization
+            System.out.println("(" + x + ", " + y + ") visited");
+
+            for (int i = 0; i < 4; i++) {
+                int nx = x + dx[i];
+                int ny = y + dy[i];
+
+                if (nx >= 0 && ny >= 0 && nx < N && ny < N && !visited[nx][ny]) {
+                    visited[nx][ny] = true;
+                    q.add(new int[]{nx, ny});
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        bfs(0, 0);
+    }
+}
+
+
+
+
+
+
+#HTML#
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DSA Visualizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🧠 DSA Path Visualiser</h1>
+
+  <div class="controls">
+    <button onclick="generateGrid()">🎲 New Grid</button>
+    <button onclick="startBFS()">🌐 BFS</button>
+    <button onclick="startDFS()">🧠 DFS</button>
+    <button onclick="startDijkstra()">🧮 Dijkstra</button>
+    <button onclick="resetGrid()">🔄 Reset</button>
+  </div>
+
+  <div class="legend">
+    <span class="box start"></span> Start
+    <span class="box end"></span> End
+    <span class="box wall"></span> Wall
+    <span class="box visited"></span> Visited
+    <span class="box path"></span> Path
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+#CSS#
+
+body {
+  text-align: center;
+  font-family: sans-serif;
+  background: #f8f8f8;
+}
+
+h1 {
+  margin-top: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(20, 25px);
+  grid-template-rows: repeat(20, 25px);
+  margin: 20px auto;
+  width: max-content;
+  border: 2px solid #555;
+}
+
+.cell {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  transition: 0.2s;
+  cursor: pointer;
+  position: relative;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+}
+
+.start {
+  background-color: green;
+  color: white;
+}
+
+.end {
+  background-color: red;
+  color: white;
+}
+
+.wall {
+  background-color: #444;
+  color: white;
+}
+
+.visited {
+  background-color: #87ceeb;
+}
+
+.path {
+  background-color: yellow;
+}
+
+.controls button {
+  margin: 10px;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #333;
+  color: white;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background-color: #555;
+}
+
+.legend {
+  margin: 10px auto;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  font-size: 14px;
+}
+
+.legend .box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+}
+
+#Script#
+
+const rows = 20;
+const cols = 20;
+let grid = [];
+let weights = [];
+let startNode, endNode;
+let mouseDown = false;
+
+function getRandomPosition() {
+  return [Math.floor(Math.random() * rows), Math.floor(Math.random() * cols)];
+}
+
+function generateGrid() {
+  grid = [];
+  weights = Array.from({ length: rows }, () => Array(cols).fill(1));
+  const container = document.getElementById("grid");
+  container.innerHTML = "";
+
+  startNode = getRandomPosition();
+  endNode = getRandomPosition();
+  while (startNode[0] === endNode[0] && startNode[1] === endNode[1]) {
+    endNode = getRandomPosition();
+  }
+
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.id = `${r}-${c}`; // ✅ fixed syntax (template literal)
+
+      weights[r][c] = Math.floor(Math.random() * 9) + 1;
+      cell.innerText = weights[r][c];
+
+      if (r === startNode[0] && c === startNode[1]) cell.classList.add("start");
+      else if (r === endNode[0] && c === endNode[1]) cell.classList.add("end");
+
+      // ✅ mouse events
+      cell.addEventListener("mousedown", () => {
+        mouseDown = true;
+        toggleWall(r, c);
+      });
+
+      cell.addEventListener("mouseover", () => {
+        if (mouseDown) toggleWall(r, c);
+      });
+
+      document.addEventListener("mouseup", () => (mouseDown = false));
+
+      container.appendChild(cell);
+      row.push(cell);
+    }
+    grid.push(row);
+  }
+}
+
+function toggleWall(r, c) {
+  const cell = grid[r][c];
+  if (!cell.classList.contains("start") && !cell.classList.contains("end")) {
+    cell.classList.toggle("wall");
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resetGrid() {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[r][c];
+      cell.classList.remove("visited", "path");
+    }
+  }
+}
+
+async function startBFS() {
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const prev = Array.from({ length: rows }, () => Array(cols).fill(null));
+  const queue = [startNode];
+  visited[startNode[0]][startNode[1]] = true;
+
+  const directions = [
+    [0, 1],
+    [1, 0],
+    [0, -1],
+    [-1, 0],
+  ];
+
+  while (queue.length) {
+    const [x, y] = queue.shift();
+
+    if (x === endNode[0] && y === endNode[1]) break;
+
+    for (let [dx, dy] of directions) {
+      const nx = x + dx;
+      const ny = y + dy;
+
+      if (
+        nx >= 0 &&
+        ny >= 0 &&
+        nx < rows &&
+        ny < cols &&
+        !visited[nx][ny] &&
+        !grid[nx][ny].classList.contains("wall")
+      ) {
+        visited[nx][ny] = true;
+        prev[nx][ny] = [x, y];
+        queue.push([nx, ny]);
+        grid[nx][ny].classList.add("visited");
+        await sleep(15);
+      }
+    }
+  }
+  await buildPath(prev);
+}
+
+async function startDFS() {
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const path = [];
+  await dfs(startNode[0], startNode[1], visited, path);
+  await buildPathFromDFS(path);
+}
+
+async function dfs(x, y, visited, path) {
+  if (
+    x < 0 ||
+    y < 0 ||
+    x >= rows ||
+    y >= cols ||
+    visited[x][y] ||
+    grid[x][y].classList.contains("wall")
+  )
+    return false;
+
+  visited[x][y] = true;
+  grid[x][y].classList.add("visited");
+  path.push([x, y]);
+  await sleep(25);
+
+  if (x === endNode[0] && y === endNode[1]) return true;
+
+  const directions = [
+    [0, 1],
+    [1, 0],
+    [0, -1],
+    [-1, 0],
+  ];
+  for (let [dx, dy] of directions) {
+    if (await dfs(x + dx, y + dy, visited, path)) return true;
+  }
+
+  path.pop();
+  return false;
+}
+
+async function buildPathFromDFS(path) {
+  for (const [x, y] of path) {
+    const cell = grid[x][y];
+    if (!cell.classList.contains("start") && !cell.classList.contains("end")) {
+      cell.classList.remove("visited");
+      cell.classList.add("path");
+      await sleep(30);
+    }
+  }
+}
+
+async function startDijkstra() {
+  const dist = Array.from({ length: rows }, () => Array(cols).fill(Infinity));
+  const prev = Array.from({ length: rows }, () => Array(cols).fill(null));
+  const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+  dist[startNode[0]][startNode[1]] = 0;
+
+  const pq = [[0, startNode[0], startNode[1]]];
+  const directions = [
+    [0, 1],
+    [1, 0],
+    [0, -1],
+    [-1, 0],
+  ];
+
+  while (pq.length > 0) {
+    pq.sort((a, b) => a[0] - b[0]);
+    const [d, x, y] = pq.shift();
+
+    if (visited[x][y]) continue;
+    visited[x][y] = true;
+
+    if (
+      !(x === startNode[0] && y === startNode[1]) &&
+      !(x === endNode[0] && y === endNode[1])
+    ) {
+      grid[x][y].classList.add("visited");
+      await sleep(15);
+    }
+
+    if (x === endNode[0] && y === endNode[1]) break;
+
+    for (let [dx, dy] of directions) {
+      let nx = x + dx;
+      let ny = y + dy;
+
+      if (
+        nx >= 0 &&
+        ny >= 0 &&
+        nx < rows &&
+        ny < cols &&
+        !visited[nx][ny] &&
+        !grid[nx][ny].classList.contains("wall")
+      ) {
+        const weight = weights[nx][ny];
+        const newDist = dist[x][y] + weight;
+        if (newDist < dist[nx][ny]) {
+          dist[nx][ny] = newDist;
+          prev[nx][ny] = [x, y];
+          pq.push([newDist, nx, ny]);
+        }
+      }
+    }
+  }
+
+  await buildPath(prev);
+}
+
+async function buildPath(prev) {
+  let [x, y] = endNode;
+  const path = [];
+  while (prev[x][y]) {
+    path.push([x, y]);
+    [x, y] = prev[x][y];
+  }
+  path.reverse();
+  for (const [px, py] of path) {
+    const cell = grid[px][py];
+    if (!cell.classList.contains("start") && !cell.classList.contains("end")) {
+      cell.classList.remove("visited");
+      cell.classList.add("path");
+      await sleep(30);
+    }
+  }
+}
+
+generateGrid();
